@@ -10,28 +10,28 @@ from collections import Iterable
 from bs4 import BeautifulSoup
 
 def insertComic(comic_name,comic_url):
-	conn = MySQLdb.connect(
-	host = 'localhost',
-	user = 'root',
-	db = 'sexcomic',
+    conn = MySQLdb.connect(
+        host = 'localhost',
+        user = 'root',
+        db = 'sexComic',
 	)
-	cur = conn.cursor()
-	sql = 'INSERT INTO comics(comic_name,comic_url) VALUES(%s,%s)'
-	cur.execute(sql,(comic_name,comic_url))
-	cur.close()
-	conn.commit()
-	conn.close()
+    cur = conn.cursor()
+    sql = 'INSERT INTO comics(comic_name,comic_url) VALUES(%s,%s)'
+    cur.execute(sql,(comic_name,comic_url))
+    cur.close()
+    conn.commit()
+    conn.close()
 
 def getname(comic_temp):
-	return str(time.time())[:10].strip()
-	# if len(comic_temp.split('之')) > 1:
-	# 	comic_modify =  ''.join(comic_temp.split('之',1)[1:])
-	# elif len(comic_temp.split('：')) > 1:
-	# 	if len(comic_temp.split(':')) > 1:
-	# 		comic_modify = ''.join(comic_temp.split(':')[-1:])
-	# 	else:
-	# 		comic_modify = ''.join(comic_temp.split('：')[-1:])
-	# elif len(comic_temp.split('漫画大全')) > 1:
+    return str(time.time())[:10].strip()
+    # if len(comic_temp.split('之')) > 1:
+    #  	comic_modify =  ''.join(comic_temp.split('之',1)[1:])
+    #  elif len(comic_temp.split('：')) > 1:
+    #  	if len(comic_temp.split(':')) > 1:
+    #  		comic_modify = ''.join(comic_temp.split(':')[-1:])
+    #  	else:
+    #  		comic_modify = ''.join(comic_temp.split('：')[-1:])
+    #  elif len(comic_temp.split('漫画大全')) > 1:
 	# 	comic_modify = ''.join(comic_temp.split('漫画大全',1)[1:])
 	# else:
 	# 	comic_modify = comic_temp
@@ -41,22 +41,22 @@ def getname(comic_temp):
 		
 
 def downloadcomic(comic_url):
-	print 'the downloadcomic:',comic_url,'is running...'
-	comic = requests.get(comic_url,headers,timeout=60)
-	comic_soup = BeautifulSoup(comic.content,'lxml',from_encoding='gb18030')
+    print('the downloadcomic:',comic_url,'is running...')
+    comic = requests.get(comic_url,headers,timeout=60)
+	comic_soup = BeautifulSoup(comic.content,'lXml',from_encoding='gb18030')
 	try:
 		comic_pagelist = int(comic_soup.find('ul',class_='pagelist').li.a.get_text()[1:-3])
 	except Exception as e:
-		print 'the Error:',e
+		print('the Error:',e)
 		return None
 	comic_name = getname(comic_soup.h1.get_text().encode('utf-8'))#截取漫画名称，如果为空则名称为当前时间戳
 	comic_path = LOG_PATH[:-13]+comic_name
 	
 	try:
-		print 'try to mkdir'
+		print('try to mkdir')
 		mkdircomic(comic_path,comic_name)
 	except:
-		'can\'t mkdir:'+comic_name
+		print('can\'t mkdir:' + comic_name)
 		return None
 
 	for singlepage in range(2,comic_pagelist+1):
@@ -74,8 +74,8 @@ def downloadcomic(comic_url):
 			img_down.write(img_r.content)
 			img_down.close()
 		except Exception as e:
-			print 'can\' down img'+comic_path+'\\'+img_name
-			print 'Error:',e
+			print('can\' down img'+comic_path+'\\'+img_name)
+			print('Error:',e)
 
 def createthread(cate_comics):
 	q = Queue.Queue()
@@ -92,12 +92,12 @@ def createthread(cate_comics):
 	for i in range(threads_count):
 		threads[i].start()
 		time.sleep(1)
-		print 'the thread',i,'is running...'
+		print('the thread',i,'is running...')
 
 	while not q.empty():
 		for i in range(threads_count):
 			if not threads[i].isAlive():
-				print 'the Thread',i,'is dead...'
+				print('the Thread',i,'is dead...')
 				threads.pop(i)
 				new_url = q.get()
 				t = threading.Thread(target=downloadcomic,args=(new_url,))
@@ -120,7 +120,7 @@ def findcomic(page_url):
 	pagesoup = BeautifulSoup(page.content,'lxml',from_encoding='gb18030')
 	comics = pagesoup.find_all('a',class_='pic show')
 	for comic in comics:
-		cate_comics.append('http://www.xiemanwang.com'+comic['href'].strip())
+		cate_comics.append('http://www.mhkkm.la/riben/wuyiniao/'+comic['href'].strip())
 
 def main():
 	global cate_comics
@@ -142,11 +142,11 @@ def main():
 
 	for i in range(pagenum):#获取该类别下所有漫画并存入cate_comics列表
 		page_url = url+'list_'+comics_sort['benzi']+'_'+str(i+1)+'.html'#组装页面地址
-		print 'Num.'+str(i)+':'+page_url
+		print('Num.'+str(i)+':'+page_url)
 		try:
 			findcomic(page_url)
 		except:
-			print page_url+' wrong'
+			print(page_url+' wrong')
 			continue
 
 	createthread(cate_comics)
