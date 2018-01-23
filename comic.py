@@ -15,19 +15,23 @@ class Comic(object):
         self.comic_title = self.title()
 
     def num_pages(self):
+        #返回漫画页数
         return int(self.comic_index_content.find('ul', class_='pagelist').li.text[1:-3])
 
     def title(self):
+        #返回漫画标题
         return self.comic_index_content.find('h1').text
 
     def pic_pages(self):
+        #返回漫画各页地址，返回的数据格式为List
         pic_pages = [self.comic_url]
         for num in range(2, self.comic_num_pages + 1):
             pic_pages.append(self.comic_url[:-5] + '_' + str(num) + '.html')
         return pic_pages
 
     @staticmethod
-    def get_pic_url(url):
+    def pic_from_page(url):
+        #返回页面中的图片地址
         return Comic.page_soup(url).select('span#t_right')[0].next_sibling.next_sibling['src']
 
     @staticmethod
@@ -42,7 +46,8 @@ class Comic(object):
 
 
 if __name__ == '__main__':
-    c = Comic('7390')
+    c = Comic('7391')
     print(c.comic_num_pages)
     print(c.comic_title)
-    print(Comic.get_pic_url(c.comic_url))
+    for pic_page in c.pic_pages():
+        print(Comic.pic_from_page(pic_page))
