@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 
 class Comic(object):
     root = 'http://www.mhkkm.la/riben/wuyiniao/'
+    fold_path = 'E:\\Lunch\\Comics\\wuyiniao\\'
 
     def __init__(self, comic_id):
         self.comic_id = comic_id
@@ -32,20 +33,24 @@ class Comic(object):
 
     def mkdir(self):
         # 创建文件夹
-        root_path = 'E:\\Lunch\\Comics\\wuyiniao\\'
-        if not os.path.exists(root_path + self.comic_id):
+        if not os.path.exists(Comic.fold_path + self.comic_id):
             try:
-                os.mkdir(root_path + self.comic_id)
+                os.mkdir(Comic.fold_path + self.comic_id)
             except OSError as e:
                 print('创建文件夹失败,原因:', e)
         else:
             print(self.comic_id + '的文件夹已存在')
 
+    # def pic_down(self):
+    #     with open(Comic.fold_path + self.comic_id + '\\' + '.jpg') as pic:
+    #         try:
 
-    @staticmethod
-    def pic_from_page(url):
+    def pics(self):
         # 返回页面中的图片地址
-        return Comic.page_soup(url).select('span#t_right')[0].next_sibling.next_sibling['src']
+        pic_urls = []
+        for page in self.pages():
+            pic_urls.append(Comic.page_soup(page).select('span#t_right')[0].next_sibling.next_sibling['src'])
+        return pic_urls
 
     @staticmethod
     def page_soup(url):
@@ -61,9 +66,4 @@ class Comic(object):
 if __name__ == '__main__':
     c = Comic('7391')
     print(c.comic_num_pages)
-    print(c.comic_title)
-    pic_content = requests.get(Comic.pic_from_page(c.pages()[0]), stream=True)
-    with open('E:\\Lunch\\Comics\\wuyiniao\\' + c.comic_id + '1.jpg', 'wb') as pic_file:
-        for p in pic_content:
-            print(p)
-
+    print(c.pics())
