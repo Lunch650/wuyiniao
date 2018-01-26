@@ -39,11 +39,23 @@ class Comic(object):
             except OSError as e:
                 print('创建文件夹失败,原因:', e)
         else:
-            print(self.comic_id + '的文件夹已存在')
+            print(self.comic_id + '的文件夹已存在,不用创建了')
 
-    # def pic_down(self):
-    #     with open(Comic.fold_path + self.comic_id + '\\' + '.jpg') as pic:
-    #         try:
+    def pic_down(self):
+        # 下载图片
+        pics = self.pics()
+        pic_content = None
+        s = requests.session()
+        for index, pic in enumerate(pics):
+            while pic_content is None:
+                try:
+                    pic_content = s.get(pic, stream=True)
+                except requests.Timeout:
+                    print('pic,Timeout,Retry')
+            with open(Comic.fold_path + self.comic_id + '\\' + Comic.file_name(str(index)) + '.jpg', 'wb') as file:
+                for content in pic_content:
+                    file.write(content)
+            pic_content = None
 
     def pics(self):
         # 返回页面中的图片地址
@@ -62,8 +74,14 @@ class Comic(object):
                 print(url, "Timeout,retry")
         return BeautifulSoup(r.content, 'lxml')
 
+    @staticmethod
+    def file_name(page):
+        while len(page) < 3:
+            page = '0' + page
+        return page
 
 if __name__ == '__main__':
-    c = Comic('7391')
-    print(c.comic_num_pages)
-    print(c.pics())
+    for i in range(4330, 4331):
+        c = Comic(str(i))
+        c.mkdir()
+        c.pic_down()
