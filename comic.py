@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 
 class Comic(object):
     root = 'http://www.mhkkm.la/riben/wuyiniao/'
-    fold_path = 'E:\\Lunch\\Comics\\wuyiniao\\'
+    fold_path = '/Comics/'
 
     def __init__(self, comic_id):
         self.comic_id = comic_id
@@ -54,6 +54,7 @@ class Comic(object):
         if not os.path.exists(Comic.fold_path + self.comic_id):
             try:
                 os.mkdir(Comic.fold_path + self.comic_id)
+                print(self.comic_id + '文件夹创建成功')
             except OSError as e:
                 print('创建文件夹失败,原因:', e)
         else:
@@ -67,13 +68,13 @@ class Comic(object):
         s.keep_alive = False
         for index, pic in enumerate(pics):
             file_name = Comic.file_name(str(index), self.comic_id)
-            if not os.path.exists(Comic.fold_path+self.comic_id+'\\'+file_name):
+            if not os.path.exists(Comic.fold_path+self.comic_id+'/'+file_name):
                 while pic_content is None:
                     try:
                         pic_content = s.get(pic, stream=True)
                     except requests.Timeout:
                         print('pic,Timeout,Retry')
-                with open(Comic.fold_path+self.comic_id+'\\'+file_name, 'wb') as file:
+                with open(Comic.fold_path+self.comic_id+'/'+file_name, 'wb') as file:
                     for content in pic_content:
                         file.write(content)
                         pic_content = None
