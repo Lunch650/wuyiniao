@@ -161,7 +161,7 @@ def main():
 #url[:-6]+str(i)+'.html'
 
 
-	#hrefs = soup.find_all('a',class_='pic show')
+	#hrefs = soup.find_all('a', class_='pic show')
 
 if __name__ == '__main__':
 	global headers
