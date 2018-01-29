@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 
 class Comic(object):
     root = 'http://www.mhkkm.la/riben/wuyiniao/'
-    fold_path = '/Comics/'
+    fold_path = '/Users/Lunch/Comics/'
 
     def __init__(self, comic_id):
         self.comic_id = comic_id
