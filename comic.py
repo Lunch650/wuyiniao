@@ -2,12 +2,14 @@
 # coding=utf8
 import requests
 import os
+import time
 from bs4 import BeautifulSoup
 
 
 class Comic(object):
     root = 'http://www.mhkkm.la/riben/wuyiniao/'
     fold_path = 'E:\\Lunch\\Comics\\wuyiniao\\'
+    sess = requests.Session()
 
     def __init__(self, comic_id):
         self.comic_id = comic_id
@@ -54,6 +56,7 @@ class Comic(object):
         if not os.path.exists(Comic.fold_path + self.comic_id):
             try:
                 os.mkdir(Comic.fold_path + self.comic_id)
+                print(self.comic_id + '文件夹创建成功')
             except OSError as e:
                 print('创建文件夹失败,原因:', e)
         else:
@@ -63,14 +66,12 @@ class Comic(object):
         # 下载图片
         pics = self.pics()
         pic_content = None
-        s = requests.session()
-        s.keep_alive = False
         for index, pic in enumerate(pics):
             file_name = Comic.file_name(str(index), self.comic_id)
             if not os.path.exists(Comic.fold_path+self.comic_id+'\\'+file_name):
                 while pic_content is None:
                     try:
-                        pic_content = s.get(pic, stream=True)
+                        pic_content = Comic.sess.get(pic)
                     except requests.Timeout:
                         print('pic,Timeout,Retry')
                 with open(Comic.fold_path+self.comic_id+'\\'+file_name, 'wb') as file:
@@ -79,6 +80,7 @@ class Comic(object):
                         pic_content = None
             else:
                 print(file_name + '存在,不用创建了')
+        Comic.sess.close()
 
     def pics(self):
         # 返回页面中的图片地址
@@ -101,9 +103,12 @@ class Comic(object):
         r = None
         while r is None:
             try:
-                r = requests.get(url, headers=headers, timeout=5)
+                r = Comic.sess.get(url, headers=headers, timeout=5)
             except requests.Timeout:
-                print(url, "Timeout,retry")
+                print(url, 'Timeout,retry')
+            except requests.ConnectionError:
+                print(url, 'ConnErr,sleep(3),retry')
+                time.sleep(3)
         return BeautifulSoup(r.content, 'lxml', from_encoding='gb18030')
 
     @staticmethod
