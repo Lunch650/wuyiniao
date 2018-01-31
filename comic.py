@@ -62,25 +62,30 @@ class Comic(object):
         else:
             print(self.comic_id + '的文件夹已存在,不用创建了')
 
+    def count_pics(self):
+        return len(os.listdir(Comic.fold_path + self.comic_id))
+
     def pic_down(self):
         # 下载图片
-        pics = self.pics()
-        pic_content = None
-        for index, pic in enumerate(pics):
-            file_name = Comic.file_name(str(index), self.comic_id)
-            if not os.path.exists(Comic.fold_path+self.comic_id+'\\'+file_name):
-                while pic_content is None:
-                    try:
-                        pic_content = Comic.sess.get(pic)
-                    except requests.Timeout:
-                        print('pic,Timeout,Retry')
-                with open(Comic.fold_path+self.comic_id+'\\'+file_name, 'wb') as file:
-                    for content in pic_content:
-                        file.write(content)
-                        pic_content = None
-            else:
-                print(file_name + '存在,不用创建了')
-        Comic.sess.close()
+        if self.comic_num_pages == self.count_pics():
+            print(self.comic_id + '共' + str(self.comic_num_pages) + '张图片早就下载完毕了')
+        else:
+            pics = self.pics()
+            pic_content = None
+            for index, pic in enumerate(pics):
+                file_name = Comic.file_name(str(index), self.comic_id)
+                if not os.path.exists(Comic.fold_path + self.comic_id + '\\' + file_name):
+                    while pic_content is None:
+                        try:
+                            pic_content = Comic.sess.get(pic)
+                        except requests.Timeout:
+                            print('pic,Timeout,Retry')
+                    with open(Comic.fold_path + self.comic_id + '\\' + file_name, 'wb') as file:
+                        for content in pic_content:
+                            file.write(content)
+                            pic_content = None
+                else:
+                    print(file_name + '存在,不用创建了')
 
     def pics(self):
         # 返回页面中的图片地址
@@ -105,10 +110,10 @@ class Comic(object):
             try:
                 r = Comic.sess.get(url, headers=headers, timeout=5)
             except requests.Timeout:
-                print(url, 'Timeout,retry')
+                print(url, 'Timeout,sleep(3),retry')
             except requests.ConnectionError:
                 print(url, 'ConnErr,sleep(3),retry')
-                time.sleep(3)
+            time.sleep(5)
         return BeautifulSoup(r.content, 'lxml', from_encoding='gb18030')
 
     @staticmethod
@@ -121,5 +126,6 @@ class Comic(object):
 if __name__ == '__main__':
     for c_id in Comic.comics_id():
         c = Comic(str(c_id))
+        print(c.comic_id + '任务启动')
         c.mkdir()
         c.pic_down()
